@@ -2,7 +2,7 @@
 
 Un libretto personale per seguire Ingegneria Informatica all’Università di Pisa. La home darà accesso agli esami in preparazione e alle dispense sul PC. L’app si aprirà in una finestra Windows, funzionerà offline e sarà utilizzabile e manutenibile dai sorgenti anche senza Codex o abbonamenti.
 
-La fase 1 permette di importare il JSON del piano, correggerlo in anteprima e aprire i materiali degli esami in preparazione. Risultati, statistiche, progetti e backup sono previsti nelle fasi successive.
+Puoi importare il piano da JSON, correggerlo in anteprima e aprire i materiali degli esami in preparazione. In **Piano → Scheda** puoi salvare modalità, docente e note. Per registrare anche un esame pregresso, scegli **Superato**, seleziona il voto o l’idoneità e salva. La home aggiorna la media ponderata e l’anello di progresso. Un clic sull’anello alterna percentuale e CFU. Progetti e backup sono previsti nella fase 3.
 
 ## Avvio su Windows
 

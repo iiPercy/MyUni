@@ -2,6 +2,17 @@ def positivo(valore):
     return type(valore) is int and 0 < valore < 2**63
 
 
+def statistiche(attivita):
+    acquisiti = pesi = punti = 0
+    for riga in attivita:
+        if riga["stato"] == "Superato":
+            acquisiti += riga["cfu"]
+            if riga["voto"] is not None:
+                pesi += riga["cfu"]
+                punti += riga["cfu"] * riga["voto"]
+    return acquisiti, punti / pesi if pesi else None
+
+
 def chiave(nome):
     return " ".join(nome.split()).casefold()
 

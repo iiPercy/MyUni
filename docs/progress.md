@@ -4,7 +4,7 @@
 | --- | --- | --- |
 | 0 · Specifica | Completata | README, istruzioni operative, requisiti, design e questo piano presenti e riletti insieme. |
 | 1 · Dal piano alla dispensa | Implementata, collaudo personale aperto | Dopo un riavvio apro una dispensa dalla home dell’app su Windows. |
-| 2 · Carriera e statistiche | Da implementare | Registro gli esiti e leggo media e CFU aggiornati. |
+| 2 · Carriera e statistiche | Implementata, da provare sul PC personale | Registro gli esiti e leggo media e CFU aggiornati. |
 | 3 · Progetti e copie | Da implementare | Consulto i progetti e recupero il libretto da un backup. |
 
 ## Fase 1 · Dal piano alla dispensa
@@ -18,11 +18,13 @@ Completare anteprima, importazione, correzioni manuali, piano e home. Scegliere 
 
 **Prove eseguite.** Due test unittest superati su Windows con Python 3.12.14 e PySide6 6.12.0. Il test Qt usa il backend offscreen, un JSON sintetico e un database temporaneo. Verifica correzione del JSON, avvisi, annullamento, importazione unica, modifica della scheda, collegamento relativo, riapertura della home senza modello filesystem e invio del percorso della dispensa al servizio desktop simulato. Avvio desktop richiesto da pythonw.exe. Restano da confermare visibilità della finestra, Smart App Control, apertura reale tramite associazioni Windows e le prove sul portatile elencate sopra.
 
-L’utente ha confermato importazione e funzionamento dei comandi della demo. Aggiunto il reset dal piano. Tre test automatici superati, incluso il nuovo flusso di annullamento, azzeramento e reimportazione con verifica della dispensa su disco. Il nuovo comando resta da provare sul PC personale.
+L’utente ha confermato importazione, funzionamento dei comandi della demo e reset del piano.
 
 ## Fase 2 · Carriera e statistiche
 
 Completare i dettagli della scheda e la registrazione degli esami pregressi. Aggiungere media e anello interattivo.
+
+**Verificato.** Cinque test automatici superati su database temporanei. Verificati aggiornamento dello schema precedente, media vuota, registrazione da scheda di voto, lode e idoneità, media 28 con 12 CFU su 60, preferenza al riavvio, annullamento e conferma della riapertura con conservazione di note e percorso materiali.
 
 - **Codex** verifica gli stati, la riapertura di un esame, lode, idoneità, media vuota e l’esempio del requisito 8. Controlla che salvare un risultato aggiorni home e piano e conservi i materiali.
 - **Sul PC personale** registrare un esame passato e un’idoneità, alternare i due valori dell’anello e riavviare per verificare la preferenza.

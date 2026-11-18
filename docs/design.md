@@ -60,3 +60,7 @@ Per il ripristino aprire la copia in sola lettura e preparare un database tempor
 La schermata di anteprima permette di correggere direttamente il JSON, con riepilogo CFU e validazione durante la digitazione. Il piano e la home condividono la finestra principale, la scheda è un dialogo e il selettore della radice è nella barra superiore. Lo schema iniziale conserva la radice e il totale nella riga piano (campi radice e totale). Gli esiti, le preferenze dell’anello e i progetti richiederanno un aggiornamento dello schema nelle fasi successive.
 
 Il reset confermato elimina attività e piano in una sola transazione SQLite e riapre la home iniziale.
+
+## Scelte attuate nella fase 2
+
+All’apertura lo schema della fase 1 viene aggiornato in una transazione SQLite. La tabella attività viene ricostruita conservando ID, stati e percorsi per estendere il vincolo sugli stati. La versione 2 conserva esito e dettagli nella stessa riga dell’attività. La preferenza dell’anello è nella riga piano. La home presenta media e anello sotto gli esami in preparazione. Il calcolo usa i dati appena salvati e include la lode come 30.

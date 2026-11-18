@@ -4,7 +4,7 @@ from datetime import date
 from pathlib import Path
 
 from PySide6.QtCore import QUrl, Qt
-from PySide6.QtGui import QDesktopServices
+from PySide6.QtGui import QDesktopServices, QPainter, QPen
 from PySide6.QtWidgets import (
     QCheckBox, QComboBox, QDialog, QFileDialog, QFileSystemModel, QFormLayout,
     QHBoxLayout, QHeaderView, QLabel, QLineEdit, QMainWindow, QMessageBox,
@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout, QWidget,
 )
 
-from carriera import chiave, positivo, verifica
+from carriera import chiave, positivo, verifica, statistiche
 from db import aggiungi, azzera_piano, collega, importa
 
 
@@ -21,6 +21,36 @@ def bottone(layout, nome, azione):
     layout.addWidget(b)
     b.clicked.connect(lambda: azione())
     return b
+
+
+class Anello(QPushButton):
+    def __init__(self, acquisiti, totale, mostra_cfu):
+        super().__init__()
+        self.percentuale = 100 * acquisiti / totale
+        self.setCheckable(True)
+        self.setChecked(mostra_cfu)
+        self.setToolTip("Alterna percentuale e CFU acquisiti")
+        self.setAccessibleName("Progresso CFU")
+        def etichetta(cfu):
+            self.setText(f"{acquisiti} / {totale}" if cfu else f"{self.percentuale:.0f}%")
+            self.update()
+        self.toggled.connect(etichetta)
+        etichetta(mostra_cfu)
+        lato = max(90, self.fontMetrics().horizontalAdvance(f"{acquisiti} / {totale}") + 24)
+        self.setFixedSize(lato, lato)
+
+    def paintEvent(self, event):
+        p = QPainter(self)
+        p.setRenderHint(QPainter.Antialiasing)
+        cerchio = self.rect().adjusted(6, 6, -6, -6)
+        p.setPen(QPen(self.palette().mid().color(), 6))
+        p.drawEllipse(cerchio)
+        p.setPen(QPen(self.palette().highlight().color(), 6))
+        p.drawArc(cerchio, 90 * 16, -round(min(self.percentuale, 100) * 57.6))
+        p.setPen(self.palette().buttonText().color())
+        p.drawText(self.rect(), Qt.AlignCenter, self.text())
+        if self.hasFocus():
+            p.drawRect(self.rect().adjusted(1, 1, -2, -2))
 
 
 class Anteprima(QDialog):
@@ -124,7 +154,21 @@ class Finestra(QMainWindow):
                     b = QPushButton(nome)
                     b.clicked.connect(lambda _, ident=r["id"], fn=azione: fn(ident))
                     tab.setCellWidget(i, j, b)
-        if not preparazione:
+        if preparazione:
+            acquisiti, media = statistiche(self.db.execute("SELECT stato,cfu,voto FROM attivita"))
+            riepilogo = QHBoxLayout()
+            layout.addLayout(riepilogo)
+            valore = "—" if media is None else f"{media:.2f}".replace(".", ",")
+            riepilogo.addWidget(QLabel(f"Media ponderata   {valore}"))
+            riepilogo.addStretch()
+            riepilogo.addWidget(QLabel("Progresso CFU"))
+            anello = Anello(acquisiti, self.piano["totale"], bool(self.piano["mostra_cfu"]))
+            riepilogo.addWidget(anello)
+            def memorizza(cfu):
+                with self.db:
+                    self.db.execute("UPDATE piano SET mostra_cfu=?", (cfu,))
+            anello.toggled.connect(memorizza)
+        else:
             bottone(layout, "Aggiungi attività", lambda: self.scheda(None))
             bottone(layout, "Azzera piano…", self.conferma_azzeramento)
 
@@ -134,7 +178,7 @@ class Finestra(QMainWindow):
         dialog.setTextFormat(Qt.PlainText)
         dialog.setText(f"Eliminare definitivamente il piano «{self.piano['corso']}»?")
         dialog.setInformativeText(
-            "Verranno eliminati attività, stati, appelli, radice materiali e collegamenti. "
+            "Verranno eliminati attività, esiti, note, appelli e collegamenti ai materiali. "
             "I file sul disco restano disponibili. Potrai importare un nuovo piano dalla home."
         )
         annulla = dialog.addButton("Annulla", QMessageBox.RejectRole)
@@ -177,10 +221,29 @@ class Finestra(QMainWindow):
             form.addRow(label, campo)
             campi[key] = campo
         stato = QComboBox()
-        stato.addItems(["Da preparare", "In preparazione"])
+        stato.addItems(["Da preparare", "In preparazione", "Superato"])
         if r:
             stato.setCurrentText(r["stato"])
         form.addRow("Stato", stato)
+        esito = QComboBox()
+        esito.addItems(["Scegli esito", "Idoneità", *map(str, range(18, 31)), "30 e lode"])
+        if r and r["stato"] == "Superato":
+            esito.setCurrentText("Idoneità" if r["idoneita"] else "30 e lode" if r["lode"] else str(r["voto"]))
+        form.addRow("Risultato", esito)
+        esito.setEnabled(stato.currentText() == "Superato")
+        stato.currentTextChanged.connect(lambda testo: esito.setEnabled(testo == "Superato"))
+        modalita = QHBoxLayout()
+        caselle = []
+        for nome in ("scritto", "orale", "progetto"):
+            casella = QCheckBox(nome.capitalize())
+            casella.setChecked(bool(r and r[nome]))
+            modalita.addWidget(casella)
+            caselle.append(casella)
+        form.addRow("Modalità", modalita)
+        docente = QLineEdit(r["docente"] if r else "")
+        form.addRow("Docente", docente)
+        note = QPlainTextEdit(r["note"] if r else "")
+        form.addRow("Note", note)
 
         def salva():
             try:
@@ -199,6 +262,17 @@ class Finestra(QMainWindow):
             except ValueError:
                 QMessageBox.warning(dialog, "Appello", "Inserisci una data valida nel formato AAAA-MM-GG.")
                 return
+            risultato = esito.currentText() if stato.currentText() == "Superato" else ""
+            if risultato == "Scegli esito":
+                QMessageBox.warning(dialog, "Risultato", "Seleziona un voto o l’idoneità.")
+                return
+            if r and r["stato"] == "Superato" and not risultato:
+                risposta = QMessageBox.question(dialog, "Riapri attività", "Rimuovere il risultato registrato?",
+                                                QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+                if risposta != QMessageBox.Yes:
+                    return
+            lode = risultato == "30 e lode"
+            voto = 30 if lode else int(risultato) if risultato.isdigit() else None
             try:
                 with self.db:
                     if r:
@@ -208,8 +282,11 @@ class Finestra(QMainWindow):
                     else:
                         aggiungi(self.db, dict(nome=nome, cfu=cfu, anno=anno))
                         activity_id = self.db.execute("SELECT last_insert_rowid()").fetchone()[0]
-                    self.db.execute("UPDATE attivita SET stato=?, appello=? WHERE id=?",
-                                    (stato.currentText(), appello or None, activity_id))
+                    self.db.execute("""UPDATE attivita SET stato=?,appello=?,voto=?,lode=?,idoneita=?,
+                                    scritto=?,orale=?,progetto=?,docente=?,note=? WHERE id=?""",
+                                    (stato.currentText(), appello or None, voto, lode, risultato == "Idoneità",
+                                     *(c.isChecked() for c in caselle), docente.text().strip(),
+                                     note.toPlainText(), activity_id))
                 dialog.accept()
             except sqlite3.IntegrityError:
                 QMessageBox.warning(dialog, "Nome duplicato", "Esiste già una attività con questo nome.")
