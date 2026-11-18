@@ -2,11 +2,32 @@
 
 Un libretto personale per seguire Ingegneria Informatica all’Università di Pisa. La home darà accesso agli esami in preparazione e alle dispense sul PC. L’app si aprirà in una finestra Windows, funzionerà offline e sarà utilizzabile e manutenibile dai sorgenti anche senza Codex o abbonamenti.
 
-**Stato attuale.** La repository contiene la specifica dell’MVP. Oggi si possono consultare i documenti e preparare il JSON del proprio piano seguendo l’esempio nel design.
+La fase 1 permette di importare il JSON del piano, correggerlo in anteprima e aprire i materiali degli esami in preparazione. Risultati, statistiche, progetti e backup sono previsti nelle fasi successive.
 
-**Uso previsto dopo l’implementazione.** Si avvierà l’app dai sorgenti in un ambiente virtuale Python con PySide6, unica dipendenza applicativa diretta esterna. Qt Widgets gestirà l’interfaccia e il modulo standard sqlite3 conserverà i dati. Dal piano importato si potranno registrare risultati, consultare media e CFU, aprire materiali e progetti locali e salvare un backup del libretto.
+## Avvio su Windows
+
+Dalla cartella del progetto in PowerShell:
+
+```powershell
+.\.venv\Scripts\python.exe main.py
+```
+
+Su questo PC l’ambiente è già predisposto. Per ricrearlo su un altro PC con Python 3.12 installato:
+
+```powershell
+py -3.12 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install PySide6==6.12.0
+```
+
+Solo l’installazione iniziale richiede il download dei pacchetti. Per i test eseguire `.\.venv\Scripts\python.exe -m unittest -v`. L’ambiente predisposto usa il Python 3.12 disponibile nel runtime locale di Codex. Per renderlo indipendente da quel runtime, ricrearlo con una propria installazione Python.
+
+## Prima dispensa
+
+Da **Importa piano** scegliere un file UTF-8 come quello nel design e confermare l’anteprima. Nel piano aprire **Scheda**, scegliere **In preparazione** e salvare. Se si desiderano percorsi portabili, scegliere **Radice materiali…** prima di collegare le cartelle. Dalla home aprire **Materiali**, scegliere **Collega cartella** e indicare la directory dell’esame. Dopo il riavvio aprire **Materiali** e fare doppio clic sulla dispensa.
 
 ## Dove leggere
+
+Per sostituire un piano demo, scegli **Piano → Azzera piano…** e conferma. Dalla home scegli **Importa piano** per caricare il nuovo JSON. Il reset elimina i dati del piano e i collegamenti salvati nel libretto. Le dispense restano nelle loro cartelle.
 
 - [Requisiti MVP](requirements.md) per i flussi e i risultati attesi.
 - [Design](docs/design.md) per il JSON, i dati locali e le schermate.

@@ -54,3 +54,9 @@ Usare layout ridimensionabili, margini di circa 16 pixel logici, 8 tra controlli
 In Impostazioni, accanto ai due comandi, mostrare «Il backup contiene il libretto e i collegamenti. Copia separatamente le cartelle di dispense e progetti». Per il backup usare sqlite3.Connection.backup verso un file temporaneo nella destinazione, chiuderlo e pubblicarlo solo a copia riuscita. Impedire di scegliere il database attivo come destinazione.
 
 Per il ripristino aprire la copia in sola lettura e preparare un database temporaneo nella directory del libretto. Verificare integrità SQLite, chiavi esterne, versione, struttura attesa e vincoli dei dati. Chiedere conferma prima della sostituzione. Sospendere le scritture, salvare una copia di sicurezza del libretto corrente e chiudere le connessioni prima della sostituzione atomica. Usare il journal SQLite predefinito. Riaprire e ricaricare le viste. Se la riapertura fallisce, recuperare la copia di sicurezza. Percorsi assenti dopo un cambio PC seguono il normale flusso «Ricollega».
+
+## Scelte attuate nella fase 1
+
+La schermata di anteprima permette di correggere direttamente il JSON, con riepilogo CFU e validazione durante la digitazione. Il piano e la home condividono la finestra principale, la scheda è un dialogo e il selettore della radice è nella barra superiore. Lo schema iniziale conserva la radice e il totale nella riga piano (campi radice e totale). Gli esiti, le preferenze dell’anello e i progetti richiederanno un aggiornamento dello schema nelle fasi successive.
+
+Il reset confermato elimina attività e piano in una sola transazione SQLite e riapre la home iniziale.

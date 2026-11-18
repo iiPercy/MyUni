@@ -3,7 +3,7 @@
 | Fase | Stato | Risultato |
 | --- | --- | --- |
 | 0 · Specifica | Completata | README, istruzioni operative, requisiti, design e questo piano presenti e riletti insieme. |
-| 1 · Dal piano alla dispensa | Da implementare | Dopo un riavvio apro una dispensa dalla home dell’app su Windows. |
+| 1 · Dal piano alla dispensa | Implementata, collaudo personale aperto | Dopo un riavvio apro una dispensa dalla home dell’app su Windows. |
 | 2 · Carriera e statistiche | Da implementare | Registro gli esiti e leggo media e CFU aggiornati. |
 | 3 · Progetti e copie | Da implementare | Consulto i progetti e recupero il libretto da un backup. |
 
@@ -15,6 +15,10 @@ Completare anteprima, importazione, correzioni manuali, piano e home. Scegliere 
 
 - **Codex** verifica con dati temporanei JSON valido ed errato, avvisi, annullamento, secondo import bloccato, aggiornamento per ID e persistenza dopo chiusura e riapertura. Controlla che all’avvio non venga attraversato l’albero dei materiali.
 - **Sul PC personale** importare un piccolo piano, scegliere un esame in preparazione e collegare una cartella con una dispensa. Chiudere e riaprire l’app, aprire «Materiali» dalla home e poi la dispensa con il programma predefinito. Verificare anche Esplora file, il collegamento desktop se creato e la leggibilità a 14 pollici. Misurare apertura e risposta all’espansione di una cartella reale.
+
+**Prove eseguite.** Due test unittest superati su Windows con Python 3.12.14 e PySide6 6.12.0. Il test Qt usa il backend offscreen, un JSON sintetico e un database temporaneo. Verifica correzione del JSON, avvisi, annullamento, importazione unica, modifica della scheda, collegamento relativo, riapertura della home senza modello filesystem e invio del percorso della dispensa al servizio desktop simulato. Avvio desktop richiesto da pythonw.exe. Restano da confermare visibilità della finestra, Smart App Control, apertura reale tramite associazioni Windows e le prove sul portatile elencate sopra.
+
+L’utente ha confermato importazione e funzionamento dei comandi della demo. Aggiunto il reset dal piano. Tre test automatici superati, incluso il nuovo flusso di annullamento, azzeramento e reimportazione con verifica della dispensa su disco. Il nuovo comando resta da provare sul PC personale.
 
 ## Fase 2 · Carriera e statistiche
 

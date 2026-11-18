@@ -6,7 +6,10 @@
 2. **Validazione.** Un file illeggibile o un JSON malformato consente di scegliere un altro file. Campi obbligatori assenti, tipi errati, nomi vuoti, CFU diversi da interi positivi e attività con lo stesso nome dopo normalizzazione impediscono il salvataggio. Il piano deve contenere almeno un’attività. Un anno intero positivo o null è valido. Anno vuoto e somma diversa dal totale producono avvisi visibili che posso accettare.
 3. **Manutenzione.** Posso aggiungere o correggere singole attività, compresi esami a scelta, idoneità, tirocinio e prova finale. Registro un insegnamento integrato come una sola attività con i suoi CFU complessivi e un solo esito. Correggere nome, CFU o anno conserva la carriera e i collegamenti. Con un piano già presente, un nuovo tentativo di importazione mi indirizza alla modifica manuale senza scrivere dati.
 
+Dal piano posso scegliere «Azzera piano…». Annullando ritrovo i dati correnti. Confermando torno a «Importa piano» e posso caricare un altro JSON. I materiali sul disco restano disponibili.
+
 ## Preparare e registrare un esame
+
 
 4. **Home.** All’apertura vedo per primi gli esami «In preparazione», ognuno con nome, eventuale prossimo appello e accessi diretti alla scheda e ai materiali. Se la lista è vuota posso aprire il piano. Il piano completo mostra anche «Da preparare» e «Superato» (gruppo «Superati»).
 5. **Scheda.** Una nuova attività parte da «Da preparare». Posso cambiare stato, selezionare una o più modalità tra scritto, orale e progetto, salvare note, docente e data facoltativa del prossimo appello. Posso lasciare vuoti i dettagli. Una data non valida impedisce il salvataggio e identifica il campo da correggere.
