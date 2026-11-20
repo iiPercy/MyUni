@@ -53,7 +53,9 @@ Usare layout ridimensionabili, margini di circa 16 pixel logici, 8 tra controlli
 
 In Impostazioni, accanto ai due comandi, mostrare «Il backup contiene il libretto e i collegamenti. Copia separatamente le cartelle di dispense e progetti». Per il backup usare sqlite3.Connection.backup verso un file temporaneo nella destinazione, chiuderlo e pubblicarlo solo a copia riuscita. Impedire di scegliere il database attivo come destinazione.
 
-Per il ripristino aprire la copia in sola lettura e preparare un database temporaneo nella directory del libretto. Verificare integrità SQLite, chiavi esterne, versione, struttura attesa e vincoli dei dati. Chiedere conferma prima della sostituzione. Sospendere le scritture, salvare una copia di sicurezza del libretto corrente e chiudere le connessioni prima della sostituzione atomica. Usare il journal SQLite predefinito. Riaprire e ricaricare le viste. Se la riapertura fallisce, recuperare la copia di sicurezza. Percorsi assenti dopo un cambio PC seguono il normale flusso «Ricollega».
+Per il ripristino la versione 3 apre il backup in sola lettura e lo copia in un database temporaneo in memoria. Confronta versione e schema con il libretto aperto, verifica integrità SQLite e chiavi esterne. Dopo la conferma e i controlli, salva una copia del libretto corrente nella sua directory e usa la transazione dell’API di backup SQLite per sostituire i dati sulla connessione aperta. La home rilegge il piano dopo il completamento.
+
+La migrazione dalla versione 2 aggiunge la tabella progetto. Il dialogo Progetti nella scheda attività elenca le associazioni e apre il dettaglio per leggere il README in UTF-8 e modificare il riassunto. I riferimenti interni al progetto seguono la cartella quando viene ricollegata.
 
 ## Scelte attuate nella fase 1
 

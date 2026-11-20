@@ -13,7 +13,8 @@ from PySide6.QtWidgets import (
 )
 
 from carriera import chiave, positivo, verifica, statistiche
-from db import aggiungi, azzera_piano, collega, importa
+from db import aggiungi, azzera_piano, backup, collega, importa, ripristina
+from progetti import Progetti
 
 
 def bottone(layout, nome, azione):
@@ -105,6 +106,7 @@ class Finestra(QMainWindow):
         bottone(barra, "Home", self.home)
         bottone(barra, "Piano", lambda: self.home(False))
         barra.addStretch()
+        bottone(barra, "Impostazioni", self.impostazioni)
         self.piano = self.db.execute("SELECT * FROM piano").fetchone()
         if self.piano:
             bottone(barra, "Radice materiali…", self.radice)
@@ -114,6 +116,37 @@ class Finestra(QMainWindow):
         label.setFont(font)
         layout.addWidget(label)
         return layout
+
+    def impostazioni(self):
+        layout = self.pagina("Impostazioni")
+        layout.addWidget(QLabel("Il backup contiene il libretto e i collegamenti.\n"
+                                "Copia separatamente le cartelle di dispense e progetti."))
+        bottone(layout, "Crea backup…", self.crea_backup)
+        bottone(layout, "Ripristina backup…", self.ripristina_backup)
+        layout.addStretch()
+
+    def crea_backup(self):
+        file, _ = QFileDialog.getSaveFileName(self, "Crea backup", "libretto-backup.sqlite", "Database (*.sqlite)")
+        if file:
+            try:
+                backup(self.db, file)
+                QMessageBox.information(self, "Backup completato", file)
+            except (ValueError, sqlite3.Error, OSError) as exc:
+                QMessageBox.warning(self, "Backup non riuscito", str(exc))
+
+    def ripristina_backup(self):
+        file, _ = QFileDialog.getOpenFileName(self, "Ripristina backup", "", "Database (*.sqlite);;Tutti i file (*)")
+        if not file:
+            return
+        if QMessageBox.question(self, "Ripristina libretto", "Sostituire il libretto corrente con la copia scelta?",
+                                QMessageBox.Yes | QMessageBox.No, QMessageBox.No) != QMessageBox.Yes:
+            return
+        try:
+            sicurezza = ripristina(self.db, file)
+            self.home()
+            QMessageBox.information(self, "Ripristino completato", f"Copia del libretto precedente:\n{sicurezza}")
+        except (ValueError, sqlite3.Error, OSError) as exc:
+            QMessageBox.warning(self, "Ripristino non riuscito", str(exc))
 
     def radice(self):
         path = QFileDialog.getExistingDirectory(self, "Scegli radice materiali", self.piano["radice"] or "")
@@ -178,7 +211,7 @@ class Finestra(QMainWindow):
         dialog.setTextFormat(Qt.PlainText)
         dialog.setText(f"Eliminare definitivamente il piano «{self.piano['corso']}»?")
         dialog.setInformativeText(
-            "Verranno eliminati attività, esiti, note, appelli e collegamenti ai materiali. "
+            "Verranno eliminati attività, esiti, note, appelli, schede progetto e collegamenti ai materiali. "
             "I file sul disco restano disponibili. Potrai importare un nuovo piano dalla home."
         )
         annulla = dialog.addButton("Annulla", QMessageBox.RejectRole)
@@ -244,6 +277,8 @@ class Finestra(QMainWindow):
         form.addRow("Docente", docente)
         note = QPlainTextEdit(r["note"] if r else "")
         form.addRow("Note", note)
+        if r:
+            bottone(form, "Progetti…", lambda: Progetti(self.db, r, self.piano["radice"], dialog).exec())
 
         def salva():
             try:

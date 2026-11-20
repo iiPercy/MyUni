@@ -1,5 +1,7 @@
 import sqlite3
+from contextlib import closing
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 
 from carriera import chiave, verifica
 
@@ -14,7 +16,14 @@ def apri(file):
             versione = db.execute("PRAGMA user_version").fetchone()[0]
             if versione == 0:
                 prepara_schema(db)
-            elif versione != 2:
+            if versione in (0, 2):
+                db.execute("""CREATE TABLE progetto (
+                    id INTEGER PRIMARY KEY, attivita_id INTEGER NOT NULL REFERENCES attivita ON DELETE CASCADE,
+                    titolo TEXT NOT NULL CHECK(length(trim(titolo))>0), cartella TEXT NOT NULL CHECK(cartella!=''),
+                    relativo INTEGER NOT NULL CHECK(relativo IN (0,1)), repository TEXT NOT NULL,
+                    readme TEXT NOT NULL, riassunto TEXT NOT NULL)""")
+                db.execute("PRAGMA user_version=3")
+            elif versione != 3:
                 raise ValueError("Versione del libretto non supportata.")
     except Exception:
         db.close()
@@ -81,3 +90,47 @@ def collega(db, ident, percorso, radice):
     with db:
         db.execute("UPDATE attivita SET percorso=?, relativo=? WHERE id=?",
                    (str(percorso), relativo, ident))
+
+
+def file_distinto(db, file):
+    attivo = Path(db.execute("PRAGMA database_list").fetchone()[2]).resolve()
+    file = Path(file).resolve()
+    if attivo == file or (file.exists() and file.samefile(attivo)):
+        raise ValueError("Scegli un file diverso dal libretto aperto.")
+    return file
+
+
+def backup(db, destinazione):
+    file = file_distinto(db, destinazione)
+    with NamedTemporaryFile(dir=file.parent, delete=False) as tmp:
+        temporaneo = Path(tmp.name)
+    try:
+        with closing(sqlite3.connect(temporaneo)) as copia:
+            db.backup(copia)
+        temporaneo.replace(file)
+    finally:
+        temporaneo.unlink(missing_ok=True)
+
+
+def ripristina(db, sorgente):
+    file = file_distinto(db, sorgente)
+    schema = "SELECT type,name,sql FROM sqlite_master WHERE sql IS NOT NULL ORDER BY type,name"
+    with closing(sqlite3.connect(":memory:")) as copia:
+        with closing(sqlite3.connect(file.as_uri() + "?mode=ro", uri=True)) as origine:
+            origine.backup(copia)
+        copia.execute("PRAGMA trusted_schema=OFF")
+        atteso = [tuple(riga) for riga in db.execute(schema)]
+        if copia.execute("PRAGMA user_version").fetchone()[0] != 3 or copia.execute(schema).fetchall() != atteso:
+            raise ValueError("Schema del backup incompatibile.")
+        if copia.execute("PRAGMA integrity_check").fetchall() != [("ok",)] or copia.execute("PRAGMA foreign_key_check").fetchone():
+            raise ValueError("Il backup contiene dati incoerenti.")
+        directory = Path(db.execute("PRAGMA database_list").fetchone()[2]).parent
+        with NamedTemporaryFile(dir=directory, prefix="prima-del-ripristino-", suffix=".sqlite", delete=False) as tmp:
+            sicurezza = Path(tmp.name)
+        try:
+            backup(db, sicurezza)
+        except Exception:
+            sicurezza.unlink(missing_ok=True)
+            raise
+        copia.backup(db)
+        return sicurezza

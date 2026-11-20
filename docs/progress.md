@@ -4,8 +4,8 @@
 | --- | --- | --- |
 | 0 · Specifica | Completata | README, istruzioni operative, requisiti, design e questo piano presenti e riletti insieme. |
 | 1 · Dal piano alla dispensa | Implementata, collaudo personale aperto | Dopo un riavvio apro una dispensa dalla home dell’app su Windows. |
-| 2 · Carriera e statistiche | Implementata, da provare sul PC personale | Registro gli esiti e leggo media e CFU aggiornati. |
-| 3 · Progetti e copie | Da implementare | Consulto i progetti e recupero il libretto da un backup. |
+| 2 · Carriera e statistiche | Media, anello e voti verificati sul PC personale | Registro gli esiti e leggo media e CFU aggiornati. |
+| 3 · Progetti e copie | Implementata, da provare sul PC personale | Consulto i progetti e recupero il libretto da un backup. |
 
 ## Fase 1 · Dal piano alla dispensa
 
@@ -35,3 +35,5 @@ Completare i progetti per attività, la lettura locale del README, il riassunto 
 
 - **Codex** verifica due progetti sullo stesso esame prima e dopo il superamento, README assente e riassunto persistente. Su database temporanei verifica il ripristino di una copia valida, l’annullamento e il rifiuto di copie corrotte o incompatibili con conservazione dei dati correnti.
 - **Sul PC personale** provare la lettura offline, il backup e il ripristino con dati di prova. Cambiare radice, ricollegare una cartella esterna mancante e riaprire un progetto. Verificare che il messaggio sul backup separato dei materiali sia visibile.
+
+**Prove automatiche della fase 3.** Database temporanei e dialoghi Qt offscreen. Verificati migrazione dalla versione 2, due progetti, lettura Markdown, modifica con README mancante dopo il superamento, backup e ripristino con copia di sicurezza, annullamento, copie incompatibili o corrotte e protezione del file attivo.
