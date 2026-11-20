@@ -3,7 +3,7 @@ from contextlib import closing
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-from carriera import chiave, verifica
+from .carriera import chiave, verifica
 
 
 def apri(file):

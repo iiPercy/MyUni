@@ -33,9 +33,16 @@ In **Impostazioni** scegli **Crea backup…** per salvare una copia SQLite di pi
 
 Per sostituire un piano demo, scegli **Piano → Azzera piano…** e conferma. Dalla home scegli **Importa piano** per caricare il nuovo JSON. Il reset elimina i dati del piano e i collegamenti salvati nel libretto. Le dispense restano nelle loro cartelle.
 
+## Struttura della repository
+
+- **main.py** avvia il programma ed è il punto di ingresso del collegamento desktop.
+- **libretto/** contiene interfaccia, stile Qt, calcoli e persistenza.
+- **tests/** raccoglie le prove automatiche con unittest.
+- **docs/** raccoglie requisiti, design e registro dei progressi.
+
 ## Dove leggere
 
-- [Requisiti MVP](requirements.md) per i flussi e i risultati attesi.
+- [Requisiti MVP](docs/requirements.md) per i flussi e i risultati attesi.
 - [Design](docs/design.md) per il JSON, i dati locali e le schermate.
 - [Avanzamento](docs/progress.md) per il prossimo traguardo e le prove su Windows.
 - [Istruzioni operative](AGENTS.md) per chi modifica la repository.

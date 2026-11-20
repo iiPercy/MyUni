@@ -9,10 +9,10 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QApplication, QComboBox, QMessageBox, QPlainTextEdit
 
-from carriera import statistiche
-from db import apri, importa
-from test_fase1 import clic
-from ui import Anello, Finestra
+from libretto.carriera import statistiche
+from libretto.db import apri, importa
+from tests.test_fase1 import clic
+from libretto.ui import Anello, Finestra
 
 
 class Carriera(unittest.TestCase):
@@ -78,7 +78,7 @@ class Carriera(unittest.TestCase):
                     clic(dialog, "Salva")
                     if risposta == QMessageBox.No:
                         dialog.reject()
-                with patch("ui.QMessageBox.question", return_value=risposta):
+                with patch("libretto.ui.QMessageBox.question", return_value=risposta):
                     QTimer.singleShot(0, riapri)
                     finestra.scheda(1)
                 self.assertEqual(calcolo(), (12, 28) if risposta == QMessageBox.No else (6, 24))

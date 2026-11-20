@@ -12,9 +12,9 @@ from PySide6.QtWidgets import (
     QGridLayout, QScrollArea, QSizePolicy, QVBoxLayout, QWidget,
 )
 
-from carriera import chiave, positivo, verifica, statistiche
-from db import aggiungi, azzera_piano, backup, collega, importa, ripristina
-from progetti import Progetti
+from .carriera import chiave, positivo, verifica, statistiche
+from .db import aggiungi, azzera_piano, backup, collega, importa, ripristina
+from .progetti import Progetti
 
 
 def bottone(layout, nome, azione):

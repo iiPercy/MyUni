@@ -1,12 +1,12 @@
 import unittest
 from contextlib import closing
 
-from test_fase1 import clic
+from tests.test_fase1 import clic
 from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QApplication, QComboBox, QLabel, QLineEdit
 
-from db import apri, importa
-from ui import Finestra, PianoSchede
+from libretto.db import apri, importa
+from libretto.ui import Finestra, PianoSchede
 
 
 class FiltriPiano(unittest.TestCase):

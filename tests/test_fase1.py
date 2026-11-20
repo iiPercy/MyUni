@@ -10,9 +10,9 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QApplication, QComboBox, QLineEdit, QPushButton, QTreeView
 
-from carriera import verifica
-from db import apri, importa
-from ui import Anteprima, Finestra
+from libretto.carriera import verifica
+from libretto.db import apri, importa
+from libretto.ui import Anteprima, Finestra
 
 
 PIANO = dict(corso="Prova", cfu_totali=9, attivita=[dict(nome="Reti", cfu=6, anno=None)])
@@ -47,7 +47,7 @@ class FaseUno(unittest.TestCase):
             finestra = Finestra(db)
             file = root / "piano.json"
             file.write_text(json.dumps(PIANO))
-            with patch("ui.QFileDialog.getOpenFileName", return_value=(str(file), "")):
+            with patch("libretto.ui.QFileDialog.getOpenFileName", return_value=(str(file), "")):
                 for azione, count in [("Annulla", 0), ("Conferma importazione", 1)]:
                     QTimer.singleShot(0, lambda: clic(self.app.activeModalWidget(), azione))
                     clic(finestra.centralWidget(), "Importa piano")
@@ -64,25 +64,25 @@ class FaseUno(unittest.TestCase):
             QTimer.singleShot(0, modifica)
             clic(finestra.centralWidget(), "Modifica dettagli")
             clic(finestra.centralWidget(), "Home")
-            with patch("ui.QFileDialog.getExistingDirectory", return_value=str(root)):
+            with patch("libretto.ui.QFileDialog.getExistingDirectory", return_value=str(root)):
                 clic(finestra.centralWidget(), "Radice materiali…")
             cartella = root / "Reti"
             cartella.mkdir()
             dispensa = cartella / "dispensa.txt"
             dispensa.write_text("Prova")
             clic(finestra.centralWidget(), "Materiali")
-            with patch("ui.QFileDialog.getExistingDirectory", return_value=str(cartella)):
+            with patch("libretto.ui.QFileDialog.getExistingDirectory", return_value=str(cartella)):
                 clic(finestra.centralWidget(), "Collega cartella")
             self.assertEqual(db.execute("SELECT percorso FROM attivita").fetchone()[0], "Reti")
             finestra.close()
             db.close()
             db = apri(root / "test.sqlite")
             try:
-                with patch("ui.QFileSystemModel", side_effect=AssertionError):
+                with patch("libretto.ui.QFileSystemModel", side_effect=AssertionError):
                     finestra = Finestra(db)
                 clic(finestra.centralWidget(), "Materiali")
                 tree = finestra.centralWidget().findChild(QTreeView)
-                with patch("ui.QDesktopServices.openUrl", return_value=True) as apertura:
+                with patch("libretto.ui.QDesktopServices.openUrl", return_value=True) as apertura:
                     tree.activated.emit(tree.model().index(str(dispensa)))
                     self.assertEqual(Path(apertura.call_args.args[0].toLocalFile()), dispensa)
                 finestra.close()
@@ -108,7 +108,7 @@ class FaseUno(unittest.TestCase):
                     self.assertEqual(db.execute("SELECT count(*) FROM attivita").fetchone()[0], attesi)
                 file = root / "nuovo.json"
                 file.write_text(json.dumps(dict(PIANO, corso="Definitivo")))
-                with patch("ui.QFileDialog.getOpenFileName", return_value=(str(file), "")):
+                with patch("libretto.ui.QFileDialog.getOpenFileName", return_value=(str(file), "")):
                     QTimer.singleShot(0, lambda: clic(self.app.activeModalWidget(), "Conferma importazione"))
                     clic(finestra.centralWidget(), "Importa piano")
                 self.assertEqual(finestra.piano["corso"], "Definitivo")

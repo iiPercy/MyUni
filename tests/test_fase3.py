@@ -5,12 +5,12 @@ from contextlib import closing
 from pathlib import Path
 from unittest.mock import patch
 
-from test_fase1 import PIANO, clic
+from tests.test_fase1 import PIANO, clic
 from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QApplication, QLineEdit, QMessageBox, QPlainTextEdit, QTextBrowser
-from db import apri, backup, importa, ripristina
-from progetti import Progetti
-from ui import Finestra
+from libretto.db import apri, backup, importa, ripristina
+from libretto.progetti import Progetti
+from libretto.ui import Finestra
 
 
 class ProgettiECopie(unittest.TestCase):
@@ -77,8 +77,8 @@ class ProgettiECopie(unittest.TestCase):
     def test_rifiuto_e_annullamento(self):
         copia = self.root / "copia.sqlite"
         backup(self.db, copia)
-        with patch("ui.QFileDialog.getOpenFileName", return_value=(str(copia), "")), \
-             patch("ui.QMessageBox.question", return_value=QMessageBox.No), patch("ui.ripristina") as azione:
+        with patch("libretto.ui.QFileDialog.getOpenFileName", return_value=(str(copia), "")), \
+             patch("libretto.ui.QMessageBox.question", return_value=QMessageBox.No), patch("libretto.ui.ripristina") as azione:
             self.finestra.ripristina_backup()
             azione.assert_not_called()
         with closing(sqlite3.connect(copia)) as db:

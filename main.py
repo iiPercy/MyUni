@@ -4,8 +4,8 @@ from pathlib import Path
 from PySide6.QtCore import QStandardPaths
 from PySide6.QtWidgets import QApplication
 
-from db import apri
-from ui import Finestra
+from libretto.db import apri
+from libretto.ui import Finestra
 
 
 def main():

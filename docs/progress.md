@@ -63,3 +63,5 @@ Verificati con Qt offscreen tre formati di finestra, titoli su più righe e rito
 **Verificato.** Nove test automatici superati. Il test del Piano verifica ricerca parziale con maiuscole, filtro combinato, modifica dello stato nella dashboard, ritorno con criteri conservati, messaggio di ricerca vuota e azzeramento dei filtri.
 
 **Cornici e ritorno dalla dashboard.** Bordi di stato portati da 2 a 5 pixel logici. La freccia accanto al titolo riporta alla Home o al Piano con i criteri precedenti. Verificati entrambi i percorsi con Qt offscreen e superati i nove test automatici.
+
+**Organizzazione della repository.** Moduli e stile in libretto/, test in tests/ e requisiti in docs/. Verificati i nove test tramite il comando abituale e l’avvio da main.py con finestra Qt offscreen, stile caricato e database temporaneo.
