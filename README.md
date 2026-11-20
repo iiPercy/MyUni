@@ -2,7 +2,7 @@
 
 Un libretto personale per seguire Ingegneria Informatica all’Università di Pisa. La home darà accesso agli esami in preparazione e alle dispense sul PC. L’app si aprirà in una finestra Windows, funzionerà offline e sarà utilizzabile e manutenibile dai sorgenti anche senza Codex o abbonamenti.
 
-Puoi importare il piano da JSON, correggerlo in anteprima e aprire i materiali degli esami in preparazione. In **Piano → Scheda** puoi salvare modalità, docente e note. Per registrare anche un esame pregresso, scegli **Superato**, seleziona il voto o l’idoneità e salva. La home aggiorna la media ponderata e l’anello di progresso. Un clic sull’anello alterna percentuale e CFU. Da **Scheda → Progetti…** puoi associare più progetti, leggere il README locale e aggiornare il riassunto anche dopo il superamento.
+Puoi importare il piano da JSON, correggerlo in anteprima e aprire i materiali degli esami in preparazione. Nel **Piano**, seleziona la scheda di un esame per aprire la sua dashboard. Con **Modifica dettagli** puoi salvare modalità, docente e note. Per registrare anche un esame pregresso, scegli **Superato**, seleziona il voto o l’idoneità e salva. La home aggiorna la media ponderata e l’anello di progresso. Un clic sull’anello alterna percentuale e CFU. Dalla dashboard, con **Progetti…**, puoi associare più progetti, leggere il README locale e aggiornare il riassunto anche dopo il superamento.
 
 ## Avvio su Windows
 
@@ -23,7 +23,7 @@ Solo l’installazione iniziale richiede il download dei pacchetti. Per i test e
 
 ## Prima dispensa
 
-Da **Importa piano** scegliere un file UTF-8 come quello nel design e confermare l’anteprima. Nel piano aprire **Scheda**, scegliere **In preparazione** e salvare. Se si desiderano percorsi portabili, scegliere **Radice materiali…** prima di collegare le cartelle. Dalla home aprire **Materiali**, scegliere **Collega cartella** e indicare la directory dell’esame. Dopo il riavvio aprire **Materiali** e fare doppio clic sulla dispensa.
+Da **Importa piano** scegliere un file UTF-8 come quello nel design e confermare l’anteprima. Nel Piano aprire la scheda dell’esame, premere **Modifica dettagli**, scegliere **In preparazione** e salvare. Se si desiderano percorsi portabili, scegliere **Radice materiali…** prima di collegare le cartelle. Dalla home aprire **Materiali**, scegliere **Collega cartella** e indicare la directory dell’esame. Dopo il riavvio aprire **Materiali** e fare doppio clic sulla dispensa.
 
 ## Backup e ripristino
 

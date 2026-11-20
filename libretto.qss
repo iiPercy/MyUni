@@ -40,3 +40,8 @@ QHeaderView::section {
 }
 QWidget#statistiche { background: #e4eef1; border-radius: 9px; }
 QLabel#media { color: #164a58; font-size: 19pt; font-weight: bold; }
+QPushButton#esame { border-radius: 8px; text-align: left; }
+QLabel#metadati { color: #495d70; }
+QLabel#nomeEsame { color: #17374c; font-size: 12pt; font-weight: bold; }
+QLabel#statoEsame { color: #245c87; }
+QLabel#statoEsame[superato="true"] { color: #176346; }

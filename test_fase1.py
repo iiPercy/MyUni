@@ -60,8 +60,9 @@ class FaseUno(unittest.TestCase):
                 dialog.findChild(QComboBox).setCurrentText("In preparazione")
                 dialog.findChildren(QLineEdit)[0].setText("Reti II")
                 clic(dialog, "Salva")
+            finestra.centralWidget().findChild(QPushButton, "esame").click()
             QTimer.singleShot(0, modifica)
-            clic(finestra.centralWidget(), "Scheda")
+            clic(finestra.centralWidget(), "Modifica dettagli")
             clic(finestra.centralWidget(), "Home")
             with patch("ui.QFileDialog.getExistingDirectory", return_value=str(root)):
                 clic(finestra.centralWidget(), "Radice materiali…")

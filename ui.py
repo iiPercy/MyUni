@@ -3,13 +3,13 @@ import sqlite3
 from datetime import date
 from pathlib import Path
 
-from PySide6.QtCore import QUrl, Qt
+from PySide6.QtCore import QTimer, QUrl, Qt
 from PySide6.QtGui import QColor, QDesktopServices, QPainter, QPen
 from PySide6.QtWidgets import (
     QCheckBox, QComboBox, QDialog, QFileDialog, QFileSystemModel, QFormLayout,
     QHBoxLayout, QHeaderView, QLabel, QLineEdit, QMainWindow, QMessageBox,
     QPlainTextEdit, QPushButton, QTableWidget, QTableWidgetItem, QTreeView,
-    QVBoxLayout, QWidget,
+    QGridLayout, QScrollArea, QSizePolicy, QVBoxLayout, QWidget,
 )
 
 from carriera import chiave, positivo, verifica, statistiche
@@ -22,6 +22,70 @@ def bottone(layout, nome, azione):
     layout.addWidget(b)
     b.clicked.connect(lambda: azione())
     return b
+
+
+class CartaEsame(QPushButton):
+    def sizeHint(self):
+        return self.layout().sizeHint()
+
+    def minimumSizeHint(self):
+        return self.layout().minimumSize()
+
+    def heightForWidth(self, width):
+        return self.layout().totalHeightForWidth(width)
+
+
+class PianoSchede(QScrollArea):
+    def __init__(self, righe, apri):
+        super().__init__()
+        self.setWidgetResizable(True)
+        corpo = QWidget()
+        self.griglia = QGridLayout(corpo)
+        self.griglia.setAlignment(Qt.AlignTop)
+        self.griglia.setSpacing(10)
+        self.colonne = 0
+        self.schede = []
+        for r in righe:
+            scheda = CartaEsame()
+            scheda.setObjectName("esame")
+            scheda.setAccessibleName(r["nome"])
+            politica = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+            politica.setHeightForWidth(True)
+            scheda.setSizePolicy(politica)
+            contenuto = QVBoxLayout(scheda)
+            contenuto.setContentsMargins(14, 12, 14, 12)
+            anno = f"Anno {r['anno']}" if r["anno"] else "Anno da definire"
+            for testo, ruolo in [(f"{anno}   ·   {r['cfu']} CFU", "metadati"),
+                                 (r["nome"], "nomeEsame"), (r["stato"], "statoEsame")]:
+                label = QLabel(testo)
+                label.setTextFormat(Qt.PlainText)
+                label.setWordWrap(True)
+                label.setObjectName(ruolo)
+                label.setProperty("superato", r["stato"] == "Superato")
+                label.setAttribute(Qt.WA_TransparentForMouseEvents)
+                contenuto.addWidget(label)
+            scheda.clicked.connect(lambda _, ident=r["id"]: apri(ident, self.verticalScrollBar().value()))
+            self.schede.append(scheda)
+        self.setWidget(corpo)
+        self.disponi()
+
+    def disponi(self):
+        colonne = max(1, min(3, self.viewport().width() // max(250, self.fontMetrics().averageCharWidth() * 28)))
+        if colonne != self.colonne:
+            self.colonne = colonne
+            for i, scheda in enumerate(self.schede):
+                self.griglia.addWidget(scheda, i // colonne, i % colonne)
+            for i in range(3):
+                self.griglia.setColumnStretch(i, int(i < colonne))
+        margini = self.griglia.contentsMargins()
+        spazio = self.viewport().width() - margini.left() - margini.right()
+        larghezza = max(1, (spazio - (colonne - 1) * self.griglia.spacing()) // colonne)
+        for scheda in self.schede:
+            scheda.setMinimumHeight(scheda.heightForWidth(larghezza))
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.disponi()
 
 
 class Anello(QPushButton):
@@ -132,6 +196,7 @@ class Finestra(QMainWindow):
         if self.piano:
             bottone(barra, "Radice materiali…", self.radice)
         label = QLabel(titolo)
+        label.setTextFormat(Qt.PlainText)
         label.setObjectName("titolo")
         label.setWordWrap(True)
         layout.addWidget(label)
@@ -175,7 +240,7 @@ class Finestra(QMainWindow):
                 self.db.execute("UPDATE piano SET radice=?", (path,))
             self.home()
 
-    def home(self, preparazione=True):
+    def home(self, preparazione=True, posizione=0):
         self.preparazione = preparazione
         layout = self.pagina("In preparazione" if preparazione else "Piano di studi")
         if not self.piano:
@@ -190,12 +255,17 @@ class Finestra(QMainWindow):
         if preparazione:
             query += " WHERE stato='In preparazione'"
         righe = self.db.execute(query + " ORDER BY nome COLLATE NOCASE").fetchall()
-        if not righe and preparazione:
+        if not preparazione:
+            piano = PianoSchede(righe, self.dashboard)
+            layout.addWidget(piano)
+            if posizione:
+                QTimer.singleShot(0, piano, lambda: piano.verticalScrollBar().setValue(posizione))
+        elif not righe:
             layout.addWidget(QLabel("Scegli dal piano un esame da preparare."))
             bottone(layout, "Apri piano", lambda: self.home(False)).setObjectName("primario")
             layout.addStretch()
         else:
-            colonne = ["Attività", "Appello"] if preparazione else ["Attività", "Anno", "CFU", "Stato"]
+            colonne = ["Attività", "Appello"]
             tab = QTableWidget(len(righe), len(colonne) + 2)
             tab.setHorizontalHeaderLabels(colonne + ["", ""])
             tab.setEditTriggers(QTableWidget.NoEditTriggers)
@@ -209,13 +279,11 @@ class Finestra(QMainWindow):
             tab.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
             layout.addWidget(tab)
             for i, r in enumerate(righe):
-                valori = [r["nome"], r["appello"]] if preparazione else [r[k] for k in ("nome","anno","cfu","stato")]
+                valori = [r["nome"], r["appello"]]
                 for j, val in enumerate(valori):
                     cella = QTableWidgetItem(str(val or ""))
-                    if colonne[j] == "Stato" and val == "Superato":
-                        cella.setForeground(QColor("#176346"))
                     tab.setItem(i, j, cella)
-                for j, (nome, azione) in enumerate([("Scheda", self.scheda), ("Materiali", self.materiali)], len(valori)):
+                for j, (nome, azione) in enumerate([("Scheda", self.dashboard), ("Materiali", self.materiali)], len(valori)):
                     b = QPushButton(nome)
                     b.clicked.connect(lambda _, ident=r["id"], fn=azione: fn(ident))
                     tab.setCellWidget(i, j, b)
@@ -292,7 +360,44 @@ class Finestra(QMainWindow):
         except (OSError, ValueError) as exc:
             QMessageBox.warning(self, "Importazione", str(exc))
 
-    def scheda(self, ident):
+    def dashboard(self, ident, posizione=None):
+        r = self.db.execute("SELECT * FROM attivita WHERE id=?", (ident,)).fetchone()
+        layout = self.pagina(r["nome"])
+        anno = f"Anno {r['anno']}" if r["anno"] else "Anno da definire"
+        layout.addWidget(QLabel(f"{anno}   ·   {r['cfu']} CFU   ·   {r['stato']}"))
+        if r["appello"] and r["stato"] != "Superato":
+            layout.addWidget(QLabel(f"Prossimo appello   {r['appello']}"))
+        if r["stato"] == "Superato":
+            esito = "Idoneità" if r["idoneita"] else "30 e lode" if r["lode"] else f"{r['voto']}/30"
+            layout.addWidget(QLabel(f"Risultato   {esito}"))
+        def aggiorna():
+            self.dashboard(ident, posizione)
+        azioni = QHBoxLayout()
+        layout.addLayout(azioni)
+        bottone(azioni, "Materiali", lambda: self.materiali(ident, aggiorna)).setObjectName("primario")
+        bottone(azioni, "Progetti…", lambda: Progetti(self.db, r, self.piano["radice"], self).exec())
+        bottone(azioni, "Modifica dettagli", lambda: self.scheda(ident, aggiorna))
+        azioni.addStretch()
+        modalita = ", ".join(m for m in ("scritto", "orale", "progetto") if r[m])
+        for campo, valore in [("Docente", r["docente"]), ("Modalità", modalita)]:
+            if valore:
+                label = QLabel(f"{campo}   {valore}")
+                label.setTextFormat(Qt.PlainText)
+                label.setWordWrap(True)
+                layout.addWidget(label)
+        if r["note"]:
+            layout.addWidget(QLabel("Note"))
+            note = QPlainTextEdit(r["note"])
+            note.setReadOnly(True)
+            layout.addWidget(note)
+        else:
+            layout.addStretch()
+        if posizione is None:
+            bottone(layout, "Torna alla Home", self.home)
+        else:
+            bottone(layout, "Torna al Piano", lambda: self.home(False, posizione))
+
+    def scheda(self, ident, dopo_salvataggio=None):
         r = self.db.execute("SELECT * FROM attivita WHERE id=?", (ident,)).fetchone()
         dialog = QDialog(self)
         dialog.setWindowTitle("Scheda attività")
@@ -377,9 +482,12 @@ class Finestra(QMainWindow):
 
         bottone(form, "Salva", salva).setObjectName("primario")
         if dialog.exec():
-            self.home(self.preparazione)
+            if dopo_salvataggio:
+                dopo_salvataggio()
+            else:
+                self.home(self.preparazione)
 
-    def materiali(self, ident):
+    def materiali(self, ident, ritorno=None):
         r = self.db.execute("SELECT * FROM attivita WHERE id=?", (ident,)).fetchone()
         layout = self.pagina("Materiali · " + r["nome"])
         radice = self.piano["radice"]
@@ -391,10 +499,12 @@ class Finestra(QMainWindow):
             path = QFileDialog.getExistingDirectory(self, "Collega cartella", radice or "")
             if path:
                 collega(self.db, ident, path, radice)
-                self.materiali(ident)
+                self.materiali(ident, ritorno)
 
         barra = QHBoxLayout()
         layout.addLayout(barra)
+        if ritorno:
+            bottone(barra, "Torna all’esame", ritorno)
         bottone(barra, "Ricollega" if percorso else "Collega cartella", scegli)
         if percorso:
             layout.addWidget(QLabel(str(percorso)))

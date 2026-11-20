@@ -44,6 +44,8 @@ Completare i progetti per attività, la lettura locale del README, il riassunto 
 
 **Ritocchi di usabilità.** Verificati in Home e Piano i pulsanti Scheda e Materiali con Segoe UI da 10 e 14 punti. Il clic sull’anello alterna il dato senza riquadro, mentre la navigazione con Tab mostra un bordo circolare. Otto test funzionali superati.
 
-## Traguardo proposto · Piano a schede e dashboard esame
+## Piano a schede e dashboard esame
 
-Da valutare per il prossimo ciclo. Ogni scheda mostra nome, anno, CFU e stato e apre una vista dedicata con appello, materiali, progetti e dettagli modificabili. Prevedere fino a tre colonne, riducendole quando la finestra si restringe. Verificare titoli lunghi e ritorno alla stessa posizione del piano. La home mantiene l’accesso diretto ai materiali degli esami in preparazione.
+Implementato. Le schede del Piano si distribuiscono su una, due o tre colonne. Una selezione apre la dashboard dell’attività. Da Materiali si può tornare all’esame e poi alla posizione precedente del Piano. La Home conserva l’apertura diretta dei materiali.
+
+Verificati con Qt offscreen tre formati di finestra, titoli su più righe e ritorno alla posizione di scorrimento con 30 attività sintetiche. Il test del flusso di importazione e modifica passa dalla nuova dashboard. Da provare sul portatile la densità delle schede alla scala Windows abituale.
