@@ -49,3 +49,17 @@ Completare i progetti per attività, la lettura locale del README, il riassunto 
 Implementato. Le schede del Piano si distribuiscono su una, due o tre colonne. Una selezione apre la dashboard dell’attività. Da Materiali si può tornare all’esame e poi alla posizione precedente del Piano. La Home conserva l’apertura diretta dei materiali.
 
 Verificati con Qt offscreen tre formati di finestra, titoli su più righe e ritorno alla posizione di scorrimento con 30 attività sintetiche. Il test del flusso di importazione e modifica passa dalla nuova dashboard. Da provare sul portatile la densità delle schede alla scala Windows abituale.
+
+## Cornici, ricerca e filtro nel Piano
+
+**Implementato.** La ricerca per nome e il filtro per stato agiscono insieme sulla griglia del Piano.
+
+- **Cornici per stato.** Usare un bordo verde per «Superato», blu per «In preparazione» e grigio per «Da preparare». Mantenere leggibile l’etichetta dello stato e distinguibile il focus da tastiera. Dopo una modifica dello stato, aggiornare la cornice al ritorno nel Piano.
+- **Ricerca per nome.** Sopra la griglia, un campo «Cerca esame» restringe le schede mentre si digita. Accettare anche una parte del nome e ignorare le differenze tra maiuscole e minuscole.
+- **Filtro per stato.** Accanto alla ricerca, offrire «Tutti gli stati» come valore iniziale e i tre stati del libretto. Applicare ricerca e filtro insieme e conservarli quando si torna dalla dashboard. Se nessuna scheda corrisponde, mostrare «Nessun esame trovato» e permettere di azzerare entrambi i criteri.
+
+**Verifica prevista.** Con «Reti di calcolatori» superato e «Reti wireless» in preparazione, «RETI» deve mostrare entrambe le schede. Selezionando «In preparazione» deve restare solo «Reti wireless», con bordo blu. Passando a «Da preparare» deve comparire il messaggio di ricerca vuota. Azzerando i criteri deve ricomparire il piano completo.
+
+**Verificato.** Nove test automatici superati. Il test del Piano verifica ricerca parziale con maiuscole, filtro combinato, modifica dello stato nella dashboard, ritorno con criteri conservati, messaggio di ricerca vuota e azzeramento dei filtri.
+
+**Cornici e ritorno dalla dashboard.** Bordi di stato portati da 2 a 5 pixel logici. La freccia accanto al titolo riporta alla Home o al Piano con i criteri precedenti. Verificati entrambi i percorsi con Qt offscreen e superati i nove test automatici.

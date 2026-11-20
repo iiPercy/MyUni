@@ -68,3 +68,5 @@ Il reset confermato elimina attività e piano in una sola transazione SQLite e r
 ## Scelte attuate nella fase 2
 
 All’apertura lo schema della fase 1 viene aggiornato in una transazione SQLite. La tabella attività viene ricostruita conservando ID, stati e percorsi per estendere il vincolo sugli stati. La versione 2 conserva esito e dettagli nella stessa riga dell’attività. La preferenza dell’anello è nella riga piano. La home presenta media e anello sotto gli esami in preparazione. Il calcolo usa i dati appena salvati e include la lode come 30.
+
+Nel Piano la ricerca e il filtro per stato ridistribuiscono le schede già caricate. La dashboard conserva i criteri insieme alla posizione di scorrimento per applicarli ai dati aggiornati al ritorno. La cornice indica lo stato insieme alla relativa etichetta.

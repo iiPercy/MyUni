@@ -46,8 +46,9 @@ class PianoSchede(QScrollArea):
         self.colonne = 0
         self.schede = []
         for r in righe:
-            scheda = CartaEsame()
+            scheda = CartaEsame(corpo)
             scheda.setObjectName("esame")
+            scheda.setProperty("stato", r["stato"])
             scheda.setAccessibleName(r["nome"])
             politica = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
             politica.setHeightForWidth(True)
@@ -66,21 +67,37 @@ class PianoSchede(QScrollArea):
                 contenuto.addWidget(label)
             scheda.clicked.connect(lambda _, ident=r["id"]: apri(ident, self.verticalScrollBar().value()))
             self.schede.append(scheda)
+        self.visibili = self.schede
         self.setWidget(corpo)
         self.disponi()
+
+    def filtra(self, testo, stato):
+        ricerca = chiave(testo)
+        self.visibili = []
+        for scheda in self.schede:
+            corrisponde = (ricerca in chiave(scheda.accessibleName())
+                           and (not stato or scheda.property("stato") == stato))
+            self.griglia.removeWidget(scheda)
+            scheda.setVisible(corrisponde)
+            if corrisponde:
+                self.visibili.append(scheda)
+        self.colonne = 0
+        self.disponi()
+        self.verticalScrollBar().setValue(0)
+        return bool(self.visibili)
 
     def disponi(self):
         colonne = max(1, min(3, self.viewport().width() // max(250, self.fontMetrics().averageCharWidth() * 28)))
         if colonne != self.colonne:
             self.colonne = colonne
-            for i, scheda in enumerate(self.schede):
+            for i, scheda in enumerate(self.visibili):
                 self.griglia.addWidget(scheda, i // colonne, i % colonne)
             for i in range(3):
                 self.griglia.setColumnStretch(i, int(i < colonne))
         margini = self.griglia.contentsMargins()
         spazio = self.viewport().width() - margini.left() - margini.right()
         larghezza = max(1, (spazio - (colonne - 1) * self.griglia.spacing()) // colonne)
-        for scheda in self.schede:
+        for scheda in self.visibili:
             scheda.setMinimumHeight(scheda.heightForWidth(larghezza))
 
     def resizeEvent(self, event):
@@ -173,7 +190,7 @@ class Finestra(QMainWindow):
         self.resize(820, 540)
         self.home()
 
-    def pagina(self, titolo):
+    def pagina(self, titolo, indietro=None):
         widget = QWidget()
         widget.setObjectName("pagina")
         self.setCentralWidget(widget)
@@ -199,7 +216,16 @@ class Finestra(QMainWindow):
         label.setTextFormat(Qt.PlainText)
         label.setObjectName("titolo")
         label.setWordWrap(True)
-        layout.addWidget(label)
+        if indietro:
+            intestazione = QHBoxLayout()
+            layout.addLayout(intestazione)
+            freccia = bottone(intestazione, "←", indietro)
+            freccia.setObjectName("indietro")
+            freccia.setAccessibleName("Torna indietro")
+            freccia.setToolTip("Torna indietro")
+            intestazione.addWidget(label, 1)
+        else:
+            layout.addWidget(label)
         return layout
 
     def impostazioni(self):
@@ -240,7 +266,7 @@ class Finestra(QMainWindow):
                 self.db.execute("UPDATE piano SET radice=?", (path,))
             self.home()
 
-    def home(self, preparazione=True, posizione=0):
+    def home(self, preparazione=True, posizione=0, ricerca="", stato=""):
         self.preparazione = preparazione
         layout = self.pagina("In preparazione" if preparazione else "Piano di studi")
         if not self.piano:
@@ -256,8 +282,40 @@ class Finestra(QMainWindow):
             query += " WHERE stato='In preparazione'"
         righe = self.db.execute(query + " ORDER BY nome COLLATE NOCASE").fetchall()
         if not preparazione:
-            piano = PianoSchede(righe, self.dashboard)
+            controlli = QHBoxLayout()
+            layout.addLayout(controlli)
+            cerca = QLineEdit(ricerca)
+            cerca.setPlaceholderText("Cerca esame")
+            cerca.setAccessibleName("Cerca esame")
+            cerca.setClearButtonEnabled(True)
+            controlli.addWidget(cerca, 1)
+            filtro = QComboBox()
+            filtro.setAccessibleName("Filtra per stato")
+            filtro.addItem("Tutti gli stati", "")
+            for opzione in ("Da preparare", "In preparazione", "Superato"):
+                filtro.addItem(opzione, opzione)
+            filtro.setCurrentIndex(filtro.findData(stato))
+            controlli.addWidget(filtro)
+            def azzera():
+                cerca.clear()
+                filtro.setCurrentIndex(0)
+                cerca.setFocus()
+            reset = bottone(controlli, "Azzera filtri", azzera)
+            def apri(ident, scroll):
+                self.dashboard(ident, scroll, cerca.text(), filtro.currentData())
+            piano = PianoSchede(righe, apri)
             layout.addWidget(piano)
+            vuoto = QLabel("Nessun esame trovato")
+            vuoto.setAlignment(Qt.AlignCenter)
+            layout.addWidget(vuoto, 1)
+            def aggiorna():
+                trovati = piano.filtra(cerca.text(), filtro.currentData())
+                piano.setVisible(trovati)
+                vuoto.setVisible(not trovati)
+                reset.setEnabled(bool(cerca.text() or filtro.currentData()))
+            cerca.textChanged.connect(aggiorna)
+            filtro.currentIndexChanged.connect(aggiorna)
+            aggiorna()
             if posizione:
                 QTimer.singleShot(0, piano, lambda: piano.verticalScrollBar().setValue(posizione))
         elif not righe:
@@ -360,9 +418,14 @@ class Finestra(QMainWindow):
         except (OSError, ValueError) as exc:
             QMessageBox.warning(self, "Importazione", str(exc))
 
-    def dashboard(self, ident, posizione=None):
+    def dashboard(self, ident, posizione=None, ricerca="", stato=""):
         r = self.db.execute("SELECT * FROM attivita WHERE id=?", (ident,)).fetchone()
-        layout = self.pagina(r["nome"])
+        def indietro():
+            if posizione is None:
+                self.home()
+            else:
+                self.home(False, posizione, ricerca, stato)
+        layout = self.pagina(r["nome"], indietro)
         anno = f"Anno {r['anno']}" if r["anno"] else "Anno da definire"
         layout.addWidget(QLabel(f"{anno}   ·   {r['cfu']} CFU   ·   {r['stato']}"))
         if r["appello"] and r["stato"] != "Superato":
@@ -371,7 +434,7 @@ class Finestra(QMainWindow):
             esito = "Idoneità" if r["idoneita"] else "30 e lode" if r["lode"] else f"{r['voto']}/30"
             layout.addWidget(QLabel(f"Risultato   {esito}"))
         def aggiorna():
-            self.dashboard(ident, posizione)
+            self.dashboard(ident, posizione, ricerca, stato)
         azioni = QHBoxLayout()
         layout.addLayout(azioni)
         bottone(azioni, "Materiali", lambda: self.materiali(ident, aggiorna)).setObjectName("primario")
@@ -392,10 +455,6 @@ class Finestra(QMainWindow):
             layout.addWidget(note)
         else:
             layout.addStretch()
-        if posizione is None:
-            bottone(layout, "Torna alla Home", self.home)
-        else:
-            bottone(layout, "Torna al Piano", lambda: self.home(False, posizione))
 
     def scheda(self, ident, dopo_salvataggio=None):
         r = self.db.execute("SELECT * FROM attivita WHERE id=?", (ident,)).fetchone()
