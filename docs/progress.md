@@ -5,7 +5,7 @@
 | 0 · Specifica | Completata | README, istruzioni operative, requisiti, design e questo piano presenti e riletti insieme. |
 | 1 · Dal piano alla dispensa | Implementata, collaudo personale aperto | Dopo un riavvio apro una dispensa dalla home dell’app su Windows. |
 | 2 · Carriera e statistiche | Media, anello e voti verificati sul PC personale | Registro gli esiti e leggo media e CFU aggiornati. |
-| 3 · Progetti e copie | Implementata, da provare sul PC personale | Consulto i progetti e recupero il libretto da un backup. |
+| 3 · Progetti e copie | Progetti e backup/ripristino verificati sul PC personale | Consulto i progetti e recupero il libretto da un backup. |
 
 ## Fase 1 · Dal piano alla dispensa
 
@@ -37,3 +37,13 @@ Completare i progetti per attività, la lettura locale del README, il riassunto 
 - **Sul PC personale** provare la lettura offline, il backup e il ripristino con dati di prova. Cambiare radice, ricollegare una cartella esterna mancante e riaprire un progetto. Verificare che il messaggio sul backup separato dei materiali sia visibile.
 
 **Prove automatiche della fase 3.** Database temporanei e dialoghi Qt offscreen. Verificati migrazione dalla versione 2, due progetti, lettura Markdown, modifica con README mancante dopo il superamento, backup e ripristino con copia di sicurezza, annullamento, copie incompatibili o corrotte e protezione del file attivo.
+
+**Chiusura del ciclo MVP, 20 novembre 2026.** L’utente ha confermato il funzionamento dei progetti e del backup/ripristino. Rieseguiti gli otto test automatici con esito positivo. Creato il collegamento desktop Libretto UniPi e verificati interprete e percorso dello script. Il primo avvio dal collegamento, la leggibilità alla scala del portatile e le misure di apertura e reattività restano verifiche sul PC personale.
+
+**Interfaccia.** Aggiornata la grafica con Qt Style Sheets locali. Verificati home e piano a 720 × 480 pixel logici con dati sintetici e carattere Windows, e ispezionata la resa della home. Gli otto test funzionali passano. Il collaudo visivo alla scala effettiva del portatile resta personale.
+
+**Ritocchi di usabilità.** Verificati in Home e Piano i pulsanti Scheda e Materiali con Segoe UI da 10 e 14 punti. Il clic sull’anello alterna il dato senza riquadro, mentre la navigazione con Tab mostra un bordo circolare. Otto test funzionali superati.
+
+## Traguardo proposto · Piano a schede e dashboard esame
+
+Da valutare per il prossimo ciclo. Ogni scheda mostra nome, anno, CFU e stato e apre una vista dedicata con appello, materiali, progetti e dettagli modificabili. Prevedere fino a tre colonne, riducendole quando la finestra si restringe. Verificare titoli lunghi e ritorno alla stessa posizione del piano. La home mantiene l’accesso diretto ai materiali degli esami in preparazione.

@@ -6,7 +6,7 @@ Puoi importare il piano da JSON, correggerlo in anteprima e aprire i materiali d
 
 ## Avvio su Windows
 
-Dalla cartella del progetto in PowerShell:
+Sul PC personale puoi aprire **Libretto UniPi** dal desktop. Per avviare l’app da PowerShell, esegui dalla cartella del progetto:
 
 ```powershell
 .\.venv\Scripts\python.exe main.py

@@ -43,6 +43,8 @@ Creare il QFileSystemModel in sola lettura quando si apre Materiali e impostare 
 
 ## Composizione della finestra
 
+La veste grafica usa un foglio di stile Qt locale, libretto.qss, caricato alla creazione della finestra. La barra blu scuro evidenzia la vista attiva. Tabelle a righe alternate e un riquadro per media e progresso distinguono le aree della home. I caratteri sono quelli di sistema.
+
 QMainWindow con navigazione Home, Piano e Impostazioni e viste in QStackedWidget. In home la lista «In preparazione» occupa lo spazio principale. Ogni riga mostra nome, eventuale appello e azioni «Scheda» e «Materiali». A fianco, un riquadro compatto con media e anello disegnato con QPainter. Su finestre strette il riquadro passa sotto la lista. Prima dell’importazione l’azione principale è «Importa piano». Dopo l’importazione, una lista vuota rimanda al piano per scegliere un’attività.
 
 Nel piano una tabella mostra nome, anno, CFU e stato. La scheda riunisce dettagli, materiali e progetti in schede Qt con un ritorno alla vista precedente. Dettagli offre un solo «Salva». Progetti usa una lista con dettaglio selezionabile, QTextBrowser con setMarkdown per la lettura locale e un editor di testo semplice per il riassunto. Evitare il caricamento di risorse remote. Il collegamento alla repository resta facoltativo.

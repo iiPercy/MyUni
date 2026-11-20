@@ -1,0 +1,42 @@
+QWidget#pagina, QDialog {
+    background: #f4f6fa;
+    color: #202f42;
+}
+QLabel, QCheckBox { color: #24364b; }
+QWidget#navigazione { background: #18354b; border-radius: 9px; }
+QLabel#marca { color: #ffffff; font-weight: bold; padding: 0 8px; }
+QLabel#titolo { color: #17374c; font-size: 21pt; font-weight: bold; }
+QLabel#corso { color: #495d70; }
+QPushButton {
+    background: #ffffff; color: #244158; border: 1px solid #b8c7d1;
+    border-radius: 5px; padding: 5px 11px;
+}
+QPushButton:hover { background: #e6eff6; border-color: #7493ab; }
+QPushButton:pressed { background: #cfdfeb; }
+QWidget#navigazione QPushButton {
+    color: white; background: transparent; border: 1px solid transparent;
+}
+QWidget#navigazione QPushButton:hover { background: #30526a; }
+QWidget#navigazione QPushButton[attivo="true"] { background: #e1edf5; color: #15344a; }
+QPushButton#primario { background: #245c87; border-color: #245c87; color: white; }
+QPushButton#primario:hover { background: #184a71; }
+QPushButton#primario:disabled, QPushButton:disabled { background: #e8edf0; color: #637381; }
+QPushButton:focus, QWidget#navigazione QPushButton:focus, QPushButton#primario:focus {
+    border: 2px solid #b87810; padding: 4px 10px;
+}
+QLineEdit, QPlainTextEdit, QTextBrowser, QComboBox, QAbstractItemView {
+    color: #213347; background: white; border: 1px solid #bdcbd6; border-radius: 5px;
+    selection-background-color: #c5deef; selection-color: #123047;
+}
+QLineEdit, QComboBox { padding: 4px; }
+QPlainTextEdit, QTextBrowser { padding: 6px; }
+QLineEdit:focus, QPlainTextEdit:focus, QTextBrowser:focus, QComboBox:focus,
+QAbstractItemView:focus { border-color: #245c87; }
+QTableWidget { alternate-background-color: #f2f6f9; }
+QTableWidget::item { padding-left: 6px; }
+QHeaderView::section {
+    background: #e7eef3; color: #344f63; border: none;
+    border-bottom: 1px solid #c3d1db; padding: 6px; font-weight: bold;
+}
+QWidget#statistiche { background: #e4eef1; border-radius: 9px; }
+QLabel#media { color: #164a58; font-size: 19pt; font-weight: bold; }

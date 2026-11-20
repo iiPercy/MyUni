@@ -4,7 +4,7 @@ from datetime import date
 from pathlib import Path
 
 from PySide6.QtCore import QUrl, Qt
-from PySide6.QtGui import QDesktopServices, QPainter, QPen
+from PySide6.QtGui import QColor, QDesktopServices, QPainter, QPen
 from PySide6.QtWidgets import (
     QCheckBox, QComboBox, QDialog, QFileDialog, QFileSystemModel, QFormLayout,
     QHBoxLayout, QHeaderView, QLabel, QLineEdit, QMainWindow, QMessageBox,
@@ -28,6 +28,7 @@ class Anello(QPushButton):
     def __init__(self, acquisiti, totale, mostra_cfu):
         super().__init__()
         self.percentuale = 100 * acquisiti / totale
+        self.focus_tastiera = False
         self.setCheckable(True)
         self.setChecked(mostra_cfu)
         self.setToolTip("Alterna percentuale e CFU acquisiti")
@@ -40,18 +41,28 @@ class Anello(QPushButton):
         lato = max(90, self.fontMetrics().horizontalAdvance(f"{acquisiti} / {totale}") + 24)
         self.setFixedSize(lato, lato)
 
+    def focusInEvent(self, event):
+        self.focus_tastiera = event.reason() in (Qt.TabFocusReason, Qt.BacktabFocusReason, Qt.ShortcutFocusReason)
+        super().focusInEvent(event)
+
+    def mousePressEvent(self, event):
+        self.focus_tastiera = False
+        super().mousePressEvent(event)
+        self.update()
+
     def paintEvent(self, event):
         p = QPainter(self)
         p.setRenderHint(QPainter.Antialiasing)
         cerchio = self.rect().adjusted(6, 6, -6, -6)
-        p.setPen(QPen(self.palette().mid().color(), 6))
+        p.setPen(QPen(QColor("#bacfd4"), 6))
         p.drawEllipse(cerchio)
-        p.setPen(QPen(self.palette().highlight().color(), 6))
+        p.setPen(QPen(QColor("#287783"), 6))
         p.drawArc(cerchio, 90 * 16, -round(min(self.percentuale, 100) * 57.6))
-        p.setPen(self.palette().buttonText().color())
+        p.setPen(QColor("#164a58"))
         p.drawText(self.rect(), Qt.AlignCenter, self.text())
-        if self.hasFocus():
-            p.drawRect(self.rect().adjusted(1, 1, -2, -2))
+        if self.hasFocus() and self.focus_tastiera:
+            p.setPen(QPen(QColor("#945e08"), 2))
+            p.drawEllipse(self.rect().adjusted(1, 1, -2, -2))
 
 
 class Anteprima(QDialog):
@@ -70,6 +81,7 @@ class Anteprima(QDialog):
         layout.addLayout(azioni)
         bottone(azioni, "Annulla", self.reject)
         self.salva = bottone(azioni, "Conferma importazione", self.accept)
+        self.salva.setObjectName("primario")
         self.editor.textChanged.connect(self.aggiorna)
         self.aggiorna()
 
@@ -93,27 +105,35 @@ class Finestra(QMainWindow):
         super().__init__()
         self.db = db
         self.setWindowTitle("Libretto UniPi")
+        self.setStyleSheet(Path(__file__).with_name("libretto.qss").read_text(encoding="utf-8"))
         self.resize(820, 540)
         self.home()
 
     def pagina(self, titolo):
         widget = QWidget()
+        widget.setObjectName("pagina")
         self.setCentralWidget(widget)
         layout = QVBoxLayout(widget)
         layout.setContentsMargins(16, 16, 16, 16)
-        barra = QHBoxLayout()
-        layout.addLayout(barra)
-        bottone(barra, "Home", self.home)
-        bottone(barra, "Piano", lambda: self.home(False))
+        layout.setSpacing(8)
+        navigazione = QWidget()
+        navigazione.setObjectName("navigazione")
+        barra = QHBoxLayout(navigazione)
+        barra.setContentsMargins(6, 5, 6, 5)
+        layout.addWidget(navigazione)
+        marca = QLabel("Libretto UniPi")
+        marca.setObjectName("marca")
+        barra.addWidget(marca)
+        bottone(barra, "Home", self.home).setProperty("attivo", titolo == "In preparazione")
+        bottone(barra, "Piano", lambda: self.home(False)).setProperty("attivo", titolo == "Piano di studi")
         barra.addStretch()
-        bottone(barra, "Impostazioni", self.impostazioni)
+        bottone(barra, "Impostazioni", self.impostazioni).setProperty("attivo", titolo == "Impostazioni")
         self.piano = self.db.execute("SELECT * FROM piano").fetchone()
         if self.piano:
             bottone(barra, "Radice materiali…", self.radice)
         label = QLabel(titolo)
-        font = label.font()
-        font.setPointSize(17)
-        label.setFont(font)
+        label.setObjectName("titolo")
+        label.setWordWrap(True)
         layout.addWidget(label)
         return layout
 
@@ -159,40 +179,66 @@ class Finestra(QMainWindow):
         self.preparazione = preparazione
         layout = self.pagina("In preparazione" if preparazione else "Piano di studi")
         if not self.piano:
-            bottone(layout, "Importa piano", self.importazione)
+            bottone(layout, "Importa piano", self.importazione).setObjectName("primario")
             layout.addStretch()
             return
-        layout.addWidget(QLabel(self.piano["corso"]))
+        corso = QLabel(self.piano["corso"])
+        corso.setObjectName("corso")
+        corso.setWordWrap(True)
+        layout.addWidget(corso)
         query = "SELECT * FROM attivita"
         if preparazione:
             query += " WHERE stato='In preparazione'"
         righe = self.db.execute(query + " ORDER BY nome COLLATE NOCASE").fetchall()
         if not righe and preparazione:
             layout.addWidget(QLabel("Scegli dal piano un esame da preparare."))
-            bottone(layout, "Apri piano", lambda: self.home(False))
+            bottone(layout, "Apri piano", lambda: self.home(False)).setObjectName("primario")
+            layout.addStretch()
         else:
             colonne = ["Attività", "Appello"] if preparazione else ["Attività", "Anno", "CFU", "Stato"]
             tab = QTableWidget(len(righe), len(colonne) + 2)
             tab.setHorizontalHeaderLabels(colonne + ["", ""])
             tab.setEditTriggers(QTableWidget.NoEditTriggers)
+            tab.setAlternatingRowColors(True)
+            tab.setShowGrid(False)
+            tab.setSelectionBehavior(QTableWidget.SelectRows)
+            tab.verticalHeader().setDefaultSectionSize(max(36, tab.fontMetrics().height() + 18))
             tab.verticalHeader().hide()
+            tab.horizontalHeader().setDefaultAlignment(Qt.AlignLeft | Qt.AlignVCenter)
             tab.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
             tab.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
             layout.addWidget(tab)
             for i, r in enumerate(righe):
                 valori = [r["nome"], r["appello"]] if preparazione else [r[k] for k in ("nome","anno","cfu","stato")]
                 for j, val in enumerate(valori):
-                    tab.setItem(i, j, QTableWidgetItem(str(val or "")))
+                    cella = QTableWidgetItem(str(val or ""))
+                    if colonne[j] == "Stato" and val == "Superato":
+                        cella.setForeground(QColor("#176346"))
+                    tab.setItem(i, j, cella)
                 for j, (nome, azione) in enumerate([("Scheda", self.scheda), ("Materiali", self.materiali)], len(valori)):
                     b = QPushButton(nome)
                     b.clicked.connect(lambda _, ident=r["id"], fn=azione: fn(ident))
                     tab.setCellWidget(i, j, b)
+                    if i == 0:
+                        b.ensurePolished()
+                        tab.horizontalHeader().setSectionResizeMode(j, QHeaderView.Fixed)
+                        tab.setColumnWidth(j, b.sizeHint().width() + b.fontMetrics().horizontalAdvance("  "))
         if preparazione:
             acquisiti, media = statistiche(self.db.execute("SELECT stato,cfu,voto FROM attivita"))
-            riepilogo = QHBoxLayout()
-            layout.addLayout(riepilogo)
+            pannello = QWidget()
+            pannello.setObjectName("statistiche")
+            riepilogo = QHBoxLayout(pannello)
+            riepilogo.setContentsMargins(16, 6, 16, 6)
+            layout.addWidget(pannello)
             valore = "—" if media is None else f"{media:.2f}".replace(".", ",")
-            riepilogo.addWidget(QLabel(f"Media ponderata   {valore}"))
+            media_layout = QVBoxLayout()
+            media_layout.addStretch()
+            media_layout.addWidget(QLabel("Media ponderata"))
+            numero = QLabel(valore)
+            numero.setObjectName("media")
+            media_layout.addWidget(numero)
+            media_layout.addStretch()
+            riepilogo.addLayout(media_layout)
             riepilogo.addStretch()
             riepilogo.addWidget(QLabel("Progresso CFU"))
             anello = Anello(acquisiti, self.piano["totale"], bool(self.piano["mostra_cfu"]))
@@ -202,8 +248,11 @@ class Finestra(QMainWindow):
                     self.db.execute("UPDATE piano SET mostra_cfu=?", (cfu,))
             anello.toggled.connect(memorizza)
         else:
-            bottone(layout, "Aggiungi attività", lambda: self.scheda(None))
-            bottone(layout, "Azzera piano…", self.conferma_azzeramento)
+            azioni = QHBoxLayout()
+            layout.addLayout(azioni)
+            bottone(azioni, "Aggiungi attività", lambda: self.scheda(None)).setObjectName("primario")
+            azioni.addStretch()
+            bottone(azioni, "Azzera piano…", self.conferma_azzeramento)
 
     def conferma_azzeramento(self):
         dialog = QMessageBox(self)
@@ -326,7 +375,7 @@ class Finestra(QMainWindow):
             except sqlite3.IntegrityError:
                 QMessageBox.warning(dialog, "Nome duplicato", "Esiste già una attività con questo nome.")
 
-        bottone(form, "Salva", salva)
+        bottone(form, "Salva", salva).setObjectName("primario")
         if dialog.exec():
             self.home(self.preparazione)
 
